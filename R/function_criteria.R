@@ -195,8 +195,13 @@ statistical_criteria = function(input){
                     #summary_inter$number_TRA[idxx] = nb_TRA
                     other_chroms[idxx] = as.character(paste(as.vector(selection_chrs),collapse="_"))
                     other_chroms_coords_all[idxx] = as.character(paste(as.vector(selection_chr_coords),collapse=""))
-                    signif <- chisq.test(obs, p=rep(1/4,4))$p.val
-                    summary_inter$pval_fragment_joins[idxx] <- signif 
+
+                    if(sum(obs) > 0) {
+                    	signif <- chisq.test(obs, p=rep(1/4,4))$p.val
+                    	summary_inter$pval_fragment_joins[idxx] <- signif
+                    } else {
+                    	warning("Skip chisq.test: Either SV table is empty or no observed SVs: sum(obs2) is zero.")
+                    }
                 }
             }
         }
@@ -311,13 +316,14 @@ statistical_criteria = function(input){
         summary$number_DUP[index_chromosome] = obs[4]
         summary$clusterSize_including_TRA[index_chromosome] = sum(obs2)
 
-        if(nrow(SVsnow) != 0){
+        if(nrow(SVsnow) != 0 & sum(obs2) > 0){
             signif <- chisq.test(obs2, p=rep(1/4,4))$p.val
-            summary$pval_fragment_joins[index_chromosome] <- signif} else{
-                summary$pval_fragment_joins[index_chromosome] <- NA
+            summary$pval_fragment_joins[index_chromosome] <- signif
+        } else {
+        	warning("Skip chisq.test: Either SV table is empty or no observed SVs: sum(obs2) is zero.")
+            summary$pval_fragment_joins[index_chromosome] <- NA
         }
     }
-
 
     names(summary_inter) = paste0("inter_",names(summary_inter))
     return(cbind(summary,summary_inter))
